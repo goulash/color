@@ -133,7 +133,7 @@ type Colorizer struct {
 	*parser
 }
 
-func NewColorizer() *Colorizer {
+func New() *Colorizer {
 	return &Colorizer{
 		w:      os.Stdout,
 		parser: newParser('@', true),
@@ -142,6 +142,32 @@ func NewColorizer() *Colorizer {
 
 func (c *Colorizer) EscapeChar() rune {
 	return c.parser.escape
+}
+
+// Set sets c on or off, with s one of "auto", "always", or "never",
+// otherwise an error is returned.
+//
+// Note: if "auto" is passed, and SetOutput was passed an io.Writer that
+// is not an *os.File, nothing will happen.
+// This lets you decide whether you want it to fall back to enabled or disabled.
+func (c *Colorizer) Set(s string) (err error) {
+	switch s {
+	case "auto":
+		if w, ok := c.w.(*os.File); ok {
+			c.SetFile(w)
+		}
+		// TODO: Decide what to do in this case. It's a writer, but not to a file,
+		// so I don't know how it will act. The conservative thing to do would be
+		// to disable it, the liberal thing would be to allow the user (programmer)
+		// to decide before-hand what will happen.
+	case "always":
+		c.SetEnabled(true)
+	case "never":
+		c.SetEnabled(false)
+	default:
+		err = errors.New("expect one of auto, always, or never")
+	}
+	return err
 }
 
 // SetEscapeChar sets the escape character, which can be one of the following characters:
