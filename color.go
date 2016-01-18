@@ -129,19 +129,26 @@ func Uncolor(s string) string {
 }
 
 type Colorizer struct {
-	w io.Writer
+	status string
+	w      io.Writer
 	*parser
 }
 
 func New() *Colorizer {
-	return &Colorizer{
-		w:      os.Stdout,
+	c := &Colorizer{
 		parser: newParser('@', true),
 	}
+	c.SetFile(os.Stdout)
+	return c
 }
 
 func (c *Colorizer) EscapeChar() rune {
 	return c.parser.escape
+}
+
+// String returns the current state, either always or never.
+func (c Colorizer) String() string {
+	return c.status
 }
 
 // Set sets c on or off, with s one of "auto", "always", or "never",
@@ -195,18 +202,22 @@ func (c *Colorizer) Enabled() bool {
 }
 
 func (c *Colorizer) SetEnabled(b bool) {
-	if c.Enabled() == b {
-		return
+	if b {
+		c.status = "always"
+	} else {
+		c.status = "never"
 	}
 	c.parser.color = b
 }
 
 func (c *Colorizer) SetOutput(w io.Writer) {
+	// TODO: should I set anything here?
 	c.w = w
 }
 
 func (c *Colorizer) SetFile(f *os.File) {
 	c.SetEnabled(terminal.IsTerminal(int(f.Fd())))
+	c.status = "auto"
 	c.w = f
 }
 
