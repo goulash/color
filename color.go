@@ -151,6 +151,14 @@ func (c Colorizer) String() string {
 	return c.status
 }
 
+// Returns the name of the type: "Colorizer".
+//
+// TODO: This is implemented to fulfil the github.com/spf13/pflag.Value interface.
+// It's not very well documented what this is for however.
+func (c Colorizer) Type() string {
+	return "Colorizer"
+}
+
 // Set sets c on or off, with s one of "auto", "always", or "never",
 // otherwise an error is returned.
 //
